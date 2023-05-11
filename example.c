@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <inttypes.h>
 #include <getopt.h>
 #include <h2645_version.h>
 #include <h264_ps.h>
@@ -160,10 +161,38 @@ int main(int argc, char *argv[])
 
 	}
 	else if (decode_SPS) {
-
+		SPS sps;
+		if (!h264_decode_sps(data, len, &sps)) {
+			static const char csp[4][5] = { "Gray", "420", "422", "444" };
+			fprintf(stdout,
+				"sps:%u profile:%d/%d poc:%d ref:%d %dx%d fps:%d %s %s crop:%u/%u/%u/%u %s %s %"PRId32"/%"PRId32" b%d reo:%d\n",
+				sps.sps_id, sps.profile_idc, sps.level_idc,
+				sps.poc_type,
+				sps.ref_frame_count,
+				h264_get_width(&sps), h264_get_height(&sps), h264_get_framerate(&sps),
+				sps.frame_mbs_only_flag ? "FRM" : (sps.mb_aff ? "MB-AFF" : "PIC-AFF"),
+				sps.direct_8x8_inference_flag ? "8B8" : "",
+				sps.crop_left, sps.crop_right,
+				sps.crop_top, sps.crop_bottom,
+				sps.vui_parameters_present_flag ? "VUI" : "",
+				csp[sps.chroma_format_idc],
+				sps.timing_info_present_flag ? sps.num_units_in_tick : 0,
+				sps.timing_info_present_flag ? sps.time_scale : 0,
+				sps.bit_depth_luma,
+				sps.bitstream_restriction_flag ? sps.num_reorder_frames : -1
+			);
+		}
+		else {
+			fprintf(stderr, "extract VPS SPS PPS error.");
+		}
 	}
 	else if (decode_PPS) {
+		SPS sps;
+		PPS pps;
+		if (!h264_decode_pps(data, len, &sps, &pps))
+		{
 
+		}
 	}
 
 fail:
