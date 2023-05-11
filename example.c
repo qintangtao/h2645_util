@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
 			);
 		}
 		else {
-			fprintf(stderr, "extract VPS SPS PPS error.");
+			fprintf(stderr, "decode SPS error.");
 		}
 	}
 	else if (decode_PPS) {
@@ -191,7 +191,21 @@ int main(int argc, char *argv[])
 		PPS pps;
 		if (!h264_decode_pps(data, len, &sps, &pps))
 		{
-
+			fprintf(stdout,
+				"pps:%u sps:%u %s slice_groups:%d ref:%u/%u %s qp:%d/%d/%d/%d %s %s %s %s\n",
+				pps.pps_id, pps.sps_id,
+				pps.cabac ? "CABAC" : "CAVLC",
+				pps.slice_group_count,
+				pps.ref_count[0], pps.ref_count[1],
+				pps.weighted_pred ? "weighted" : "",
+				pps.init_qp, pps.init_qs, pps.chroma_qp_index_offset[0], pps.chroma_qp_index_offset[1],
+				pps.deblocking_filter_parameters_present ? "LPAR" : "",
+				pps.constrained_intra_pred ? "CONSTR" : "",
+				pps.redundant_pic_cnt_present ? "REDU" : "",
+				pps.transform_8x8_mode ? "8x8DCT" : "");
+		}
+		else {
+			fprintf(stderr, "decode PPS error.");
 		}
 	}
 
