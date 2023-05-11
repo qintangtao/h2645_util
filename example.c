@@ -3,13 +3,14 @@
 #include <getopt.h>
 #include <h2645_version.h>
 #include <h264_ps.h>
+#include <h265_ps.h>
 
 static void
 print_usage(FILE *out, const char *prog, int exit_code)
 {
 	fprintf(out,
 		"Syntax: %s { OPTS } -H <4:h264, 5:h265> <input file> {<output VPS file> <output SPS file> <output PPS file>}\n"
-		" -e      - extract VPS or SPS or PPS\n"
+		" -e      - extract VPS SPS PPS\n"
 		" -v      - decode VPS\n"
 		" -s      - decode SPS\n"
 		" -p      - decode PPS\n",
@@ -28,6 +29,16 @@ int main(int argc, char *argv[])
 	const char *vps_file;
 	const char *sps_file;
 	const char *pps_file;
+	FILE *f_i = NULL;
+	FILE *f_vps = NULL;
+	FILE *f_sps = NULL;
+	FILE *f_pps = NULL;
+	uint8_t *data = NULL;
+	int64_t len;
+	int64_t r_len;
+	uint8_t *vps[256]; uint32_t vps_len;
+	uint8_t *sps[256]; uint32_t sps_len;
+	uint8_t *pps[256]; uint32_t pps_len;
 
 	int opt;
 	while ((opt = getopt(argc, argv, "evspH:")) != EOF)
@@ -64,19 +75,108 @@ int main(int argc, char *argv[])
 		print_usage(stdout, argv[0], EXIT_FAILURE);
 
 	if (optind >= argc || 
-		(type == 4 && (argc - optind) < 3) || 
-		(type == 5 && (argc - optind) < 4)) {
+		(!extract && (argc - optind) < 1) ||
+		(extract && type == 4 && (argc - optind) < 3) ||
+		(extract && type == 5 && (argc - optind) < 4)) {
 		print_usage(stdout, argv[0], EXIT_FAILURE);
 	}
 
 	input_file = argv[optind++];
-	if (type == 5)
-		vps_file = argv[optind++];
-	sps_file = argv[optind++];
-	pps_file = argv[optind++];
+	if (extract) {
+		if (type == 5)
+			vps_file = argv[optind++];
+		sps_file = argv[optind++];
+		pps_file = argv[optind++];
+	}
 	
-
 	printf("version: %d.%d.%d\n", H2645_UTIL_VERSION_MAJOR, H2645_UTIL_VERSION_MINOR, H2645_UTIL_VERSION_DEBUG);
+
+	f_i = fopen(input_file, "rb");
+	if (!f_i) {
+		fprintf(stderr, "open input file error.");
+		goto fail;
+	}
+
+	_fseeki64(f_i, 0, SEEK_END);
+	len = _ftelli64(f_i);
+	_fseeki64(f_i, 0, SEEK_SET);
+
+	if (len <= 0) {
+		fprintf(stderr, "get input file length error. size=%d\n", len);
+		goto fail;
+	}
+
+	data = malloc(len);
+	if (!data) {
+		fprintf(stderr, "alloc memory error.");
+		goto fail;
+	}
+
+	r_len = fread(data, 1, len, f_i);
+	if (r_len != len) {
+		fprintf(stderr, "read input file error.");
+		goto fail;
+	}
+
+	if (extract) {
+		if (type == 5) {
+			f_vps = fopen(vps_file, "wb");
+			if (!f_vps) {
+				fprintf(stderr, "open vps file error.");
+				goto fail;
+			}
+		}
+
+		f_sps = fopen(sps_file, "wb");
+		if (!f_sps) {
+			fprintf(stderr, "open sps file error.");
+			goto fail;
+		}
+
+		f_pps = fopen(pps_file, "wb");
+		if (!f_pps) {
+			fprintf(stderr, "open pps file error.");
+			goto fail;
+		}
+
+		if (type == 4) {
+			if (!h264_get_sps_pps(data, len, sps, &sps_len, pps, &pps_len)) {
+				fwrite(sps, 1, sps_len, f_sps);
+				fwrite(pps, 1, pps_len, f_pps);
+			} else {
+				fprintf(stderr, "extract SPS PPS error.");
+			}
+		} else if (type == 5) {
+			if (!h265_get_vps_sps_pps(data, len, vps, &vps_len, sps, &sps_len, pps, &pps_len)) {
+				fwrite(vps, 1, vps_len, f_vps);
+				fwrite(sps, 1, sps_len, f_sps);
+				fwrite(pps, 1, pps_len, f_pps);
+			} else {
+				fprintf(stderr, "extract VPS SPS PPS error.");
+			}
+		}
+	} 
+	else if (decode_VPS) {
+
+	}
+	else if (decode_SPS) {
+
+	}
+	else if (decode_PPS) {
+
+	}
+
+fail:
+	if (f_i)
+		fclose(f_i);
+	if (f_vps)
+		fclose(f_vps);
+	if (f_sps)
+		fclose(f_sps);
+	if (f_pps)
+		fclose(f_pps);
+	if (data)
+		free(data);
 
 	return 0;
 }
