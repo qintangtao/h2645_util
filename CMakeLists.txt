@@ -229,12 +229,23 @@ if(WINDOWS)
 endif() 
 
 
+
+# ============================================EXECUTABLE============================================
+SET (EXAMPLE_OUTPUT_NAME example)
+
+add_executable(${EXAMPLE_OUTPUT_NAME} example.c)
+
+target_link_libraries(${EXAMPLE_OUTPUT_NAME}
+					PRIVATE
+					${OUTPUT_NAME})
+
+					
+
 #实际安装路径是  ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}
 #实际安装路径是  ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}
 
-INSTALL(TARGETS ${OUTPUT_NAME}
+INSTALL(TARGETS ${OUTPUT_NAME} ${EXAMPLE_OUTPUT_NAME}
 		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 	    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	)
-
