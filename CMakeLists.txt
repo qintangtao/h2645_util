@@ -209,8 +209,6 @@ endif()
 
 configure_file("${CMAKE_SOURCE_DIR}/h2645_version.h.in" "${CMAKE_SOURCE_DIR}/include/h2645_version.h")
 
-
-
 # ============================================BUILD============================================
 
 include_directories(${CMAKE_SOURCE_DIR}
@@ -222,10 +220,6 @@ include_directories(${CMAKE_SOURCE_DIR}
 aux_source_directory(src SRC_LIST)
 
 add_library(${OUTPUT_NAME} STATIC ${SRC_LIST})
-
-#target_compile_definitions(${OUTPUT_NAME}
-#	                            PRIVATE
-#								PROXY)
 
 if(WINDOWS)
 	target_compile_definitions(${OUTPUT_NAME}
@@ -256,9 +250,9 @@ if(WINDOWS)
 endif() 
 
 
+# ============================================INSTALL============================================
 #实际安装路径是  ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}
 #实际安装路径是  ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}
-
 INSTALL(TARGETS ${OUTPUT_NAME} ${EXAMPLE_OUTPUT_NAME}
 		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 	    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
