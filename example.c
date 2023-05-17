@@ -37,9 +37,9 @@ int main(int argc, char *argv[])
 	uint8_t *data = NULL;
 	int64_t len;
 	int64_t r_len;
-	uint8_t *vps[256]; uint32_t vps_len;
-	uint8_t *sps[256]; uint32_t sps_len;
-	uint8_t *pps[256]; uint32_t pps_len;
+	uint8_t vps[256]; uint32_t vps_len;
+	uint8_t sps[256]; uint32_t sps_len;
+	uint8_t pps[256]; uint32_t pps_len;
 
 	int opt;
 	while ((opt = getopt(argc, argv, "evspH:")) != EOF)
