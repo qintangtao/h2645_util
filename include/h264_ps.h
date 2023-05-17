@@ -145,6 +145,11 @@ extern "C" {
 	int h264_get_sps_pps(uint8_t *data, int len, uint8_t *sps, int *sps_len, uint8_t *pps, int *pps_len);
 
 	/**
+	* split sps and pps and sei
+	*/
+	int h264_get_sps_pps_sei(uint8_t *data, int len, uint8_t *sps, int *sps_len, uint8_t *pps, int *pps_len, uint8_t *sei, int *sei_len);
+
+	/**
 	 * Decode SPS
 	 */
 	int h264_decode_sps(const uint8_t *data, const uint32_t len, SPS *sps);

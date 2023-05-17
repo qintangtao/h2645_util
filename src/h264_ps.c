@@ -868,3 +868,42 @@ int h264_get_sps_pps(uint8_t *data, int len, uint8_t *sps, int *sps_len, uint8_t
 
 	return (*sps_len > 0 && *pps_len > 0) ? 0 : -1;
 }
+
+int h264_get_sps_pps_sei(uint8_t *data, int len, uint8_t *sps, int *sps_len, uint8_t *pps, int *pps_len, uint8_t *sei, int *sei_len)
+{
+	uint8_t nalu_t; int nalu_len;
+	uint8_t *r, *end = data + len;
+	*sps_len = 0; *pps_len = 0;
+
+	r = avc_find_startcode(data, end);
+
+	while (r < end)
+	{
+		uint8_t *r1;
+
+		while (!*(r++));
+		r1 = avc_find_startcode(r, end);
+		nalu_t = r[0] & 0x1F;
+		nalu_len = (int)(r1 - r);
+
+		if (nalu_t == 7) {
+			memcpy(sps, r, nalu_len);
+			*sps_len = nalu_len;
+		}
+		else if (nalu_t == 8) {
+			memcpy(pps, r, nalu_len);
+			*pps_len = nalu_len;
+		}
+		else if (nalu_t == 6) {
+			memcpy(sei, r, nalu_len);
+			*sei_len = nalu_len;
+		}
+
+		if (*sps_len > 0 && *pps_len > 0 && *sei_len > 0)
+			break;
+
+		r = r1;
+	}
+
+	return (*sps_len > 0 && *pps_len > 0 && *sei_len > 0) ? 0 : -1;
+}
