@@ -20,11 +20,6 @@ cmake_minimum_required(VERSION 2.8)
 #SET (CMAKE_OBJDUMP "objdump")
 #SET (CMAKE_RANLIB  "ranlib")
 
-SET (CMAKE_C_FLAGS                	"${CMAKE_C_FLAGS} -std=c99")
-#SET (CMAKE_C_FLAGS_DEBUG            "${CMAKE_C_FLAGS_DEBUG} -DDEBUG")
-SET (CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS} -std=gnu++11")
-#SET (CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
-
 
 #SET(CMAKE_BUILD_TYPE Debug)
 if(NOT CMAKE_BUILD_TYPE)
@@ -155,49 +150,32 @@ endif()
 
 message(STATUS "Detected ${PLATFORM_NAME} platform")
 
-# 安装路径
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-	
-	#set(MY_INSTALL_PREFIX ../lib/${PLATFORM_NAME})
-	set(MY_INSTALL_PREFIX ./lib/${PLATFORM_NAME})
-
-	get_filename_component(MY_INSTALL_ABSOLUTE_PREFIX ${MY_INSTALL_PREFIX} ABSOLUTE)
-		
-	set(CMAKE_INSTALL_PREFIX ${MY_INSTALL_ABSOLUTE_PREFIX} CACHE PATH "My default install prefix" FORCE)
-
-endif()
-
-
-# 安装目录
-if(NOT CMAKE_INSTALL_LIBDIR)
-	if(ANDROID)
-		set(CMAKE_INSTALL_LIBDIR ${ANDROID_ABI})
-	elseif(X86)
+if(NOT ARCH_NAME)
+  if(ANDROID)
+    set(ARCH_NAME ${ANDROID_ABI})
+  elseif(X86)
     if(ARCH_64)
-		  set(CMAKE_INSTALL_LIBDIR x86_64)
+      set(ARCH_NAME x86_64)
     else()
-      set(CMAKE_INSTALL_LIBDIR x86)
+      set(ARCH_NAME x86)
     endif()
   else()
     message(WARNING "Please add this install lib dir near ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE}")
-	endif()
-endif()
-
-if(NOT CMAKE_INSTALL_BINDIR)
-	if(ANDROID)
-		set(CMAKE_INSTALL_BINDIR ${ANDROID_ABI})
-	elseif(X86)
-    if(ARCH_64)
-      set(CMAKE_INSTALL_BINDIR x86_64)
-    else()
-      set(CMAKE_INSTALL_BINDIR x86)
-    endif()
-  else()
-    message(WARNING "Please add this install bin dir near ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE}")
   endif()
 endif()
 
-message(STATUS "Install bin path: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}")
+# 安装路径
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  
+  set(MY_INSTALL_PREFIX ./install/${PLATFORM_NAME}/${ARCH_NAME})
+
+  get_filename_component(MY_INSTALL_ABSOLUTE_PREFIX ${MY_INSTALL_PREFIX} ABSOLUTE)
+    
+  set(CMAKE_INSTALL_PREFIX ${MY_INSTALL_ABSOLUTE_PREFIX} CACHE PATH "My default install prefix" FORCE)
+
+endif()
+
+message(STATUS "CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}")
 
 #if(LINUX OR Android)
 if(UNIX)
@@ -208,6 +186,7 @@ if(UNIX)
 endif()
 
 configure_file("${CMAKE_SOURCE_DIR}/h2645_version.h.in" "${CMAKE_SOURCE_DIR}/include/h2645_version.h")
+configure_file("${CMAKE_SOURCE_DIR}/h2645.pc.in" "${CMAKE_SOURCE_DIR}/${OUTPUT_NAME}.pc" @ONLY)
 
 # ============================================BUILD============================================
 
@@ -251,10 +230,29 @@ endif()
 
 
 # ============================================INSTALL============================================
+# 安装目录
+if(NOT CMAKE_INSTALL_LIBDIR)
+  set(CMAKE_INSTALL_LIBDIR lib)
+endif()
+
+if(NOT CMAKE_INSTALL_BINDIR)
+  set(CMAKE_INSTALL_BINDIR bin)
+endif()
+
+if(NOT CMAKE_INSTALL_INCLUDEDIR)
+  set(CMAKE_INSTALL_INCLUDEDIR include)
+endif()
+
 #实际安装路径是  ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}
 #实际安装路径是  ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}
 INSTALL(TARGETS ${OUTPUT_NAME} ${EXAMPLE_OUTPUT_NAME}
-		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+		  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 	    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	)
+
+  
+INSTALL(FILES "${CMAKE_SOURCE_DIR}/${OUTPUT_NAME}.pc" DESTINATION "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+INSTALL(FILES "${CMAKE_SOURCE_DIR}/example.c" DESTINATION "${CMAKE_INSTALL_PREFIX}/share")
+
+INSTALL(DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX})
