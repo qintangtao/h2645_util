@@ -557,7 +557,7 @@ int h264_decode_sps(const uint8_t *data, const uint32_t len, SPS *sps)
 
 	sps->frame_mbs_only_flag = bs_read_u1(s);
 
-	if (sps->mb_height >= INT_MAX / 2U) {
+	if (sps->mb_height >= INT32_MAX / 2U) {
 		fprintf(stderr, "height overflow\n");
 		goto fail;
 	}
@@ -568,8 +568,8 @@ int h264_decode_sps(const uint8_t *data, const uint32_t len, SPS *sps)
 	else
 		sps->mb_aff = 0;
 
-	if ((unsigned)sps->mb_width >= INT_MAX / 16 ||
-		(unsigned)sps->mb_height >= INT_MAX / 16) {
+	if ((unsigned)sps->mb_width >= INT32_MAX / 16 ||
+		(unsigned)sps->mb_height >= INT32_MAX / 16) {
 		fprintf(stderr, "mb_width/height overflow\n");
 		goto fail;
 	}
@@ -591,10 +591,10 @@ int h264_decode_sps(const uint8_t *data, const uint32_t len, SPS *sps)
 		int step_x = 1 << hsub;
 		int step_y = (2 - sps->frame_mbs_only_flag) << vsub;
 
-		if (crop_left > (unsigned)INT_MAX / 4 / step_x ||
-			crop_right > (unsigned)INT_MAX / 4 / step_x ||
-			crop_top > (unsigned)INT_MAX / 4 / step_y ||
-			crop_bottom > (unsigned)INT_MAX / 4 / step_y ||
+		if (crop_left > (unsigned)INT32_MAX / 4 / step_x ||
+			crop_right > (unsigned)INT32_MAX / 4 / step_x ||
+			crop_top > (unsigned)INT32_MAX / 4 / step_y ||
+			crop_bottom > (unsigned)INT32_MAX / 4 / step_y ||
 			(crop_left + crop_right) * step_x >= width ||
 			(crop_top + crop_bottom) * step_y >= height
 			) {
