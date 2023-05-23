@@ -1,6 +1,7 @@
 #ifndef BS_H
 #define BS_H
 #include <stdint.h>
+#include <sys/types.h>
 
 #ifdef __cplusplus
 extern "C" {

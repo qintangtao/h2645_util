@@ -98,12 +98,18 @@ int main(int argc, char *argv[])
 		goto fail;
 	}
 
+#if (defined(WIN32) || defined(WIN64) || defined(_MSC_VER) || defined(_WIN32))
 	_fseeki64(f_i, 0, SEEK_END);
 	len = _ftelli64(f_i);
 	_fseeki64(f_i, 0, SEEK_SET);
+#else
+	fseek(f_i, 0, SEEK_END);
+	len = ftell(f_i);
+	fseek(f_i, 0, SEEK_SET);
+#endif
 
 	if (len <= 0) {
-		fprintf(stderr, "get input file length error. size=%d\n", len);
+		fprintf(stderr, "get input file length error. size=%lld\n", len);
 		goto fail;
 	}
 
