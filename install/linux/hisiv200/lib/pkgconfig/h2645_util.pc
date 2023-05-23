@@ -1,0 +1,11 @@
+prefix=/mnt/hgfs/Sharefile/2022/tt/h2645_util/install/linux/hisiv200
+exec_prefix=${prefix}
+libdir=${exec_prefix}/
+includedir=${prefix}/include
+
+Name: h2645_util
+Description: h2645 util library
+Version: 1.0.
+Libs: -L${libdir} -lh2645_util
+Libs.private:
+Cflags: -I${includedir}
